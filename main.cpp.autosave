@@ -1,0 +1,9 @@
+#include "Escultor.hpp"
+#include <iostream>
+
+
+int main (){
+
+    Escultor esc(1,1,1)
+
+}
