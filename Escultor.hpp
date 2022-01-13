@@ -1,5 +1,6 @@
 #ifndef ESCULTOR_HPP
 #define ESCULTOR_HPP
+#include <iostream>
 
 struct Voxel {
   float r,g,b; // Colors

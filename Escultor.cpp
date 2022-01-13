@@ -1,7 +1,8 @@
-#include <fstream>
 #include "Escultor.hpp"
 #include <iostream>
-
+#include <fstream>
+#include <math.h>
+#include <string>
 
 
 
@@ -116,58 +117,176 @@ void Sculptor::putVoxel(int x, int y, int z){
     v[x][y][z].a = alpha;
     v[x][y][z].isOn = true;
 }
-
-void Sculptor::writeOFF(char* filename){
-
-    std::ofstream exit;
-    exit.open(filename);
-    int i, j, k, total=0;
-
-    for(i=0; i<nz; i++){
-        for(j=0; j<ny; j++){
-            for(k=0; k<nx; k++){
-                if(v[i][j][k].isOn==true){
-                    total++;
-                }
-            }
-        }
-    }
-
-    exit << "OFF\n";
-    exit << total*8 << " " << total*6 << " " << "0\n";
-    for(i=0; i<nz; i++){
-        for(j=0; j<ny; j++){
-            for(k=0; k<nx; k++){
-                if(v[i][j][k].isOn == true){
-                    exit << i-0.5 << " " << j+0.5 << " " << k-0.5 << "\n";
-                    exit << i-0.5 << " " << j-0.5 << " " << k-0.5 << "\n";
-                    exit << i+0.5 << " " << j-0.5 << " " << k-0.5 << "\n";
-                    exit << i+0.5 << " " << j+0.5 << " " << k-0.5 << "\n";
-                    exit << i-0.5 << " " << j+0.5 << " " << k+0.5 << "\n";
-                    exit << i-0.5 << " " << j-0.5 << " " << k+0.5 << "\n";
-                    exit << i+0.5 << " " << j-0.5 << " " << k+0.5 << "\n";
-                    exit << i+0.5 << " " << j+0.5 << " " << k+0.5 << "\n";
-                }
-            }
-        }
-    }
-    total=0;
-    for(i=0; i<nz; i++){
-        for(j=0; j<ny; j++){
-            for(k=0; k<nx; k++){
-                if(v[i][j][k].isOn==true){
-                    int aux = 8*total;
-                    exit << "4 " << aux << " " << aux+3 << " " << aux+2 << " " << aux+1 << " " << (v[i][j][k].r) << " " << (v[i][j][k].g) << " " << (v[i][j][k].b) << " " << (v[i][j][k].a) << "\n";
-                    exit << "4 " << aux+4 << " " << aux+5 << " " << aux+6 << " " << aux+7 << " " << (v[i][j][k].r) << " " << (v[i][j][k].g) << " " << (v[i][j][k].b) << " " << (v[i][j][k].a) << "\n";
-                    exit << "4 " << aux << " " << aux+1 << " " << aux+5 << " " << aux+4 << " " << (v[i][j][k].r) << " " << (v[i][j][k].g) << " " << (v[i][j][k].b) << " " << (v[i][j][k].a) << "\n";
-                    exit << "4 " << aux << " " << aux+4 << " " << aux+7 << " " << aux+3 << " " << (v[i][j][k].r) << " " << (v[i][j][k].g) << " " << (v[i][j][k].b) << " " << (v[i][j][k].a) << "\n";
-                    exit << "4 " << aux+3 << " " << aux+7 << " " << aux+6 << " " << aux+2 << " " << (v[i][j][k].r) << " " << (v[i][j][k].g) << " " << (v[i][j][k].b) << " " << (v[i][j][k].a) << "\n";
-                    exit << "4 " << aux+1 << " " << aux+2 << " " << aux+6 << " " << aux+5 << " " << (v[i][j][k].r) << " " << (v[i][j][k].g) << " " << (v[i][j][k].b) << " " << (v[i][j][k].a) << "\n";
-                    aux++;
-                }
-            }
-        }
-    }
-    exit.close();
+void  Sculptor :: cutVoxel ( int x, int y, int z){
+    v[x][y][z].isOn = false ;
 }
 
+void Sculptor::putBox(int x0, int x1, int y0, int y1, int z0, int z1){
+    int i,j,k;
+    for(i = x0; i <= x1; i++){
+        for(j = y0; j <= y1; j++){
+            for(k = z0; k <= z1; k++){
+               putVoxel(i,j,k);
+            }
+        }
+    }
+}
+
+void Sculptor::cutBox(int x0, int x1, int y0, int y1, int z0, int z1){
+    int i,j,k;
+    for(i = x0; i <= x1; i++){
+        for(j = y0; j <= y1; j++){
+            for(k = z0; k <= z1; k++){
+                cutVoxel(i,j,k);
+            }
+        }
+    }
+}
+
+void Sculptor::putSphere(int x2, int y2, int z2, int r1){
+    for ( int i = 0 ; i <(2*x2); i ++)
+    {
+        for ( int j = 0 ; j < (2*y2); j ++)
+        {
+            for ( int k = 0 ; k < (2*z2); k ++)
+            {
+                if (((i-x2) * (i-x2) + (j-y2) * (j-y2) + (k-z2) * (k-z2)) <= (r1*r1))
+                {
+                   putVoxel(i,j,k);
+                }
+            }
+        }
+    }
+}
+
+void Sculptor::cutSphere(int x2, int y2, int z2, int r1){
+    for ( int i = 0 ; i <(2*x2); i ++)
+    {
+        for ( int j = 0 ; j < (2*y2); j ++)
+        {
+            for ( int k = 0 ; k < (2*z2); k ++)
+            {
+                // formula do circulo a^2+b^2+c^2 = r^2
+                if (((i-x2) * (i-x2) + (j-y2) * (j-y2) + (k-z2) * (k-z2)) <= (r1*r1))
+                {
+                   cutVoxel(i,j,k);
+                }
+            }
+        }
+    }
+}
+
+void Sculptor::putEllipsoid(int x2, int y2, int z2, int rx, int ry, int rz){
+
+    for(int i=x2-rx; i< x2+rx; i++)
+    {
+        for(int j=y2-ry; j<y2 + ry; j++)
+        {
+            for(int k=z2-rz; k< z2+rz; k++)
+            {
+                if ((pow(i-x2,2)/pow(rx,2)) + (pow(j-y2,2)/pow(ry,2)) + (pow(k-z2,2)/pow(rz,2)) <= 1)
+                {
+                   putVoxel(i,j,k);
+                }
+            }
+        }
+    }
+}
+
+void Sculptor::cutEllipsoid(int x2, int y2, int z2, int rx, int ry, int rz){
+    for(int i=x2-rx; i< x2+rx; i++)
+    {
+        for(int j=y2-ry; j<y2 + ry; j++)
+        {
+            for(int k=z2-rz; k< z2+rz; k++)
+            {
+                if ((pow(i-x2,2)/pow(rx,2)) + (pow(j-y2,2)/pow(ry,2)) + (pow(k-z2,2)/pow(rz,2)) <= 1)
+                {
+                   cutVoxel(i,j,k);
+                }
+            }
+        }
+    }
+}
+
+void Sculptor::writeOFF(char *nome){
+    std::string str;
+    std::ofstream f_out;
+    f_out.open(nome);
+
+    std::cout<<"Entrou\n";
+
+    if(! f_out.good())
+    {
+        std::cout << "Falha ao criar arquivo\n";
+    }
+    else
+        std::cout << "Arquivo criado!\n";
+
+
+    int totalDeElementos = nx*ny*nz;
+
+    for(int i = 0; i<nz; i++)
+    {
+        for(int j = 0; j<ny; j++)
+        {
+            for(int k = 0; k<nx; k++)
+            {
+                if(v[i][j][k].isOn == false)
+                {
+                    totalDeElementos--;
+                }
+            }
+        }
+    }
+
+    str += "OFF\n";
+    str += std::to_string(totalDeElementos*8) + " " + std::to_string(totalDeElementos*6) + " " + "0\n";
+
+    for(int i = 0; i<nz; i++)
+    {
+        for(int j = 0; j<ny; j++)
+        {
+            for(int k = 0; k<nx; k++)
+            {
+                if(v[i][j][k].isOn == true)
+                {
+                    str += std::to_string(k-0.5) + " " + std::to_string(j+0.5) + " " + std::to_string(i-0.5) + "\n";
+                    str += std::to_string(k-0.5) + " " + std::to_string(j-0.5) + " " + std::to_string(i-0.5) + "\n";
+                    str += std::to_string(k+0.5) + " " + std::to_string(j-0.5) + " " + std::to_string(i-0.5) + "\n";
+                    str += std::to_string(k+0.5) + " " + std::to_string(j+0.5) + " " + std::to_string(i-0.5) + "\n";
+                    str += std::to_string(k-0.5) + " " + std::to_string(j+0.5) + " " + std::to_string(i+0.5) + "\n";
+                    str += std::to_string(k-0.5) + " " + std::to_string(j-0.5) + " " + std::to_string(i+0.5) + "\n";
+                    str += std::to_string(k+0.5) + " " + std::to_string(j-0.5) + " " + std::to_string(i+0.5) + "\n";
+                    str += std::to_string(k+0.5) + " " + std::to_string(j+0.5) + " " + std::to_string(i+0.5) + "\n";
+                }
+            }
+        }
+    }
+
+    int cont = 0;
+
+    for(int i = 0; i<nz; i++)
+    {
+        for(int j = 0; j<ny; j++)
+        {
+            for(int k = 0; k<nx; k++)
+            {
+                if(v[i][j][k].isOn == true)
+                {
+                    int pos = 8*cont;
+                    str += "4 " + std::to_string(pos) + " " + std::to_string(pos+3) + " " + std::to_string(pos+2) + " " + std::to_string(pos+1) + " " + std::to_string(v[i][j][k].r) + " " + std::to_string(v[i][j][k].g) + " " + std::to_string(v[i][j][k].b) + " " + std::to_string(v[i][j][k].a) + "\n";
+                    str += "4 " + std::to_string(pos+4) + " " + std::to_string(pos+5) + " " + std::to_string(pos+6) + " " + std::to_string(pos+7) + " " + std::to_string(v[i][j][k].r) + " " + std::to_string(v[i][j][k].g) + " " + std::to_string(v[i][j][k].b) + " " + std::to_string(v[i][j][k].a) + "\n";
+                    str += "4 " + std::to_string(pos) + " " + std::to_string(pos+1) + " " +std::to_string(pos+5) + " " + std::to_string(pos+4) + " " + std::to_string(v[i][j][k].r) + " " + std::to_string(v[i][j][k].g) + " " + std::to_string(v[i][j][k].b) + " " + std::to_string(v[i][j][k].a) + "\n";
+                    str += "4 " + std::to_string(pos) + " " + std::to_string(pos+4) + " " + std::to_string(pos+7) + " " + std::to_string(pos+3) + " " + std::to_string(v[i][j][k].r) + " " + std::to_string(v[i][j][k].g) + " " + std::to_string(v[i][j][k].b) + " " + std::to_string(v[i][j][k].a) + "\n";
+                    str +="4 " + std::to_string(pos+3) + " " + std::to_string(pos+7) + " " + std::to_string(pos+6) + " " + std::to_string(pos+2) + " " + std::to_string(v[i][j][k].r) + " " + std::to_string(v[i][j][k].g) + " " + std::to_string(v[i][j][k].b) + " " + std::to_string(v[i][j][k].a) + "\n";
+                    str += "4 " + std::to_string(pos+1) + " " + std::to_string(pos+2) + " " + std::to_string(pos+6) + " " + std::to_string(pos+5) + " " + std::to_string(v[i][j][k].r) + " " + std::to_string(v[i][j][k].g) + " " + std::to_string(v[i][j][k].b) + " " + std::to_string(v[i][j][k].a) + "\n";
+                    cont++;
+                }
+            }
+        }
+    }
+
+    f_out << str;
+    f_out.close();
+}
