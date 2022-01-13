@@ -1,6 +1,7 @@
 #include <fstream>
 #include "Escultor.hpp"
 #include <iostream>
+#include <cmath>
 
 
 
@@ -115,6 +116,97 @@ void Sculptor::putVoxel(int x, int y, int z){
     v[x][y][z].b = b;
     v[x][y][z].a = alpha;
     v[x][y][z].isOn = true;
+}
+void  Sculptor :: cutVoxel ( int x, int y, int z){
+    v[x][y][z].isOn = false ;
+}
+
+void Sculptor::putBox(int x0, int x1, int y0, int y1, int z0, int z1){
+    int i,j,k;
+    for(i = x0; i <= x1; i++){
+        for(j = y0; j <= y1; j++){
+            for(k = z0; k <= z1; k++){
+               putVoxel(i,j,k);
+            }
+        }
+    }
+}
+
+void Sculptor::cutBox(int x0, int x1, int y0, int y1, int z0, int z1){
+    int i,j,k;
+    for(i = x0; i <= x1; i++){
+        for(j = y0; j <= y1; j++){
+            for(k = z0; k <= z1; k++){
+                cutVoxel(i,j,k);
+            }
+        }
+    }
+}
+
+void Sculptor::putSphere(int x2, int y2, int z2, int r1){
+    for ( int i = 0 ; i <(2*x2); i ++)
+    {
+        for ( int j = 0 ; j < (2*y2); j ++)
+        {
+            for ( int k = 0 ; k < (2*z2); k ++)
+            {
+                if (((i-x2) * (i-x2) + (j-y2) * (j-y2) + (k-z2) * (k-z2)) <= (r1*r1))
+                {
+                   putVoxel(i,j,k);
+                }
+            }
+        }
+    }
+}
+
+void Sculptor::cutSphere(int x2, int y2, int z2, int r1){
+    for ( int i = 0 ; i <(2*x2); i ++)
+    {
+        for ( int j = 0 ; j < (2*y2); j ++)
+        {
+            for ( int k = 0 ; k < (2*z2); k ++)
+            {
+                // formula do circulo a^2+b^2+c^2 = r^2
+                if (((i-x2) * (i-x2) + (j-y2) * (j-y2) + (k-z2) * (k-z2)) <= (r1*r1))
+                {
+                   cutVoxel(i,j,k);
+                }
+            }
+        }
+    }
+}
+
+void Sculptor::putEllipsoid(int x2, int y2, int z2, int rx, int ry, int rz){
+
+    for(int i=x2-rx; i< x2+rx; i++)
+    {
+        for(int j=y2-ry; j<y2 + ry; j++)
+        {
+            for(int k=z2-rz; k< z2+rz; k++)
+            {
+                if ((pow(i-x2,2)/pow(rx,2)) + (pow(j-y2,2)/pow(ry,2)) + (pow(k-z2,2)/pow(rz,2)) <= 1)
+                {
+                   putVoxel(i,j,k);
+                }
+            }
+        }
+    }
+}
+
+void Sculptor::cutEllipsoid(int x2, int y2, int z2, int rx, int ry, int rz){
+    for(int i=x2-rx; i< x2+rx; i++)
+    {
+        for(int j=y2-ry; j<y2 + ry; j++)
+        {
+            for(int k=z2-rz; k< z2+rz; k++)
+            {
+                if ((pow(i-x2,2)/pow(rx,2)) + (pow(j-y2,2)/pow(ry,2)) + (pow(k-z2,2)/pow(rz,2)) <= 1)
+                {
+                   cutVoxel(i,j,k);
+                }
+            }
+        }
+    }
 }
 
 void Sculptor::writeOFF(char* filename){
